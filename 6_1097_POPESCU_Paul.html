@@ -1,18 +1,44 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SVG Editor</title>
     <link rel="stylesheet" href="6_1097_POPESCU_Paul.css">
 </head>
+
 <body>
     <div id="toolbar">
+        <button id="undo">Undo</button>
         <button id="selector-mode" class="tool-button" tool="selector">Selector</button>
         <button id="draw-rectangle" class="tool-button" tool="rectangle">Dreptunghi</button>
         <button id="draw-circle" class="tool-button" tool="circle">Cerc</button>
         <button id="draw-ellipse" class="tool-button" tool="ellipse">Elipsa</button>
         <button id="draw-line" class="tool-button" tool="line">Linie</button>
+        <label for="line-width">Grosime linie:</label>
+        <select id="line-width">
+            <option value="1">1 px</option>
+            <option value="2">2 px</option>
+            <option value="3">3 px</option>
+            <option value="4">4 px</option>
+            <option value="5">5 px</option>
+            <option value="6">6 px</option>
+            <option value="8">8 px</option>
+            <option value="10">10 px</option>
+            <option value="12">12 px</option>
+            <option value="14">14 px</option>
+            <option value="16">16 px</option>
+            <option value="18">18 px</option>
+            <option value="20">20 px</option>
+            <option value="22">22 px</option>
+            <option value="24">24 px</option>
+            <option value="26">26 px</option>
+            <option value="28">28 px</option>
+            <option value="30">30 px</option>
+        </select>
+        <label for="line-color">Culoare:</label>
+        <input type="color" id="line-color" value="#000000">
         <button id="download-svg">Download SVG</button>
         <button id="export-png">Export PNG</button>
         <button id="export-jpeg">Export JPEG</button>
@@ -22,4 +48,5 @@
     </div>
     <script src="6_1097_POPESCU_Paul.js"></script>
 </body>
+
 </html>

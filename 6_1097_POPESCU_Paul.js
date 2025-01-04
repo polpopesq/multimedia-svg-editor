@@ -1,9 +1,97 @@
 //https://docs.google.com/document/d/1UxLn1d8PxYq640Hhi1kxoce95qm6pNivzBVa99hWNWE/edit?tab=t.0
-
 const buttons = document.querySelectorAll(".tool-button");
 const svgCanvas = document.getElementById("svg-canvas");
+const lineWidthControl = document.getElementById("line-width");
+const lineColorControl = document.getElementById("line-color");
+const undoButton = document.getElementById("undo");
 let activeTool = null;
 let startX, startY, currentShape = null;
+let currentLineWidth = lineWidthControl.value;
+let currentLineColor = lineColorControl.value;
+
+function autoSave() {
+    localStorage.setItem("drawing", svgCanvas.outerHTML);
+    const stringuri = stack.map(obj => obj.outerHTML);
+    localStorage.setItem("stack", JSON.stringify(stringuri));
+}
+
+function autoLoad() {
+    const drawing = localStorage.getItem("drawing");
+    if (drawing) {
+        const svgCanvas = document.getElementById("svg-canvas");
+
+        svgCanvas.innerHTML = drawing;
+    }
+
+    const stringuri = JSON.parse(localStorage.getItem("stack"));
+    console.log(stringuri);
+    if(stringuri) {
+        const parser = new DOMParser();
+        stack = stringuri.map(str => parser.parseFromString(str, "image/svg+xml").documentElement);
+    }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    autoLoad();
+
+    //pe svg canvas:
+    svgCanvas.addEventListener("mousedown", onMouseDown);//cand dai click undeva
+    svgCanvas.addEventListener("mousemove", onMouseMove);//cand misti mouse-ul
+    svgCanvas.addEventListener("mouseup", onMouseUp);//cand ridici click-ul (termini de desenat)
+
+    undoButton.addEventListener("click", undoLast);
+
+    // Actualizare grosime linie
+    lineWidthControl.addEventListener("change", (e) => {
+        currentLineWidth = e.target.value;
+    });
+
+    // Actualizare culoare linie
+    lineColorControl.addEventListener("input", (e) => {
+        currentLineColor = e.target.value;
+    });
+
+    //setare tool activ
+    buttons.forEach((button) => {
+        button.addEventListener("click", () => {
+            buttons.forEach((btn) => btn.classList.remove("active"));
+
+            button.classList.add("active");
+
+            activeTool = button.getAttribute("tool");
+            updateCursorStyle();
+        });
+    });
+
+    //export SVG
+    document.getElementById("download-svg").addEventListener("click", () => {
+        const svgContent = svgCanvas.outerHTML;
+        const blob = new Blob([svgContent], { type: "image/svg+xml" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "drawing.svg";
+        link.click();
+    });
+})
+
+
+
+let stack = []//stiva operatiilor pentru undo
+function undoLast() {
+    if (stack.length > 0) {
+        const lastChange = stack.pop();
+        console.log(lastChange);
+        svgCanvas.removeChild(lastChange);
+        autoSave();
+    }
+    console.log(stack);
+}
+
+function setTransparentAndStrokeOnCreate(shape) {
+    shape.setAttribute("fill", "transparent");
+    shape.setAttribute("stroke", currentLineColor);
+    shape.setAttribute("stroke-width", currentLineWidth);
+}
 
 //organizator functii pt desenat forme
 //create se apeleaza la mouseDown, update la mouseMove
@@ -15,7 +103,7 @@ const shapeHandlers = {
             rect.setAttribute("y", y);
             rect.setAttribute("width", 0);
             rect.setAttribute("height", 0);
-            rect.setAttribute("fill", "blue");
+            setTransparentAndStrokeOnCreate(rect);
             return rect;
         },
         update: (shape, x, y) => {
@@ -33,7 +121,7 @@ const shapeHandlers = {
             circle.setAttribute("cx", x);
             circle.setAttribute("cy", y);
             circle.setAttribute("r", 0);
-            circle.setAttribute("fill", "red");
+            setTransparentAndStrokeOnCreate(circle);
             return circle;
         },
         update: (shape, x, y) => {
@@ -48,8 +136,8 @@ const shapeHandlers = {
             line.setAttribute("y1", y);
             line.setAttribute("x2", x);
             line.setAttribute("y2", y);
-            line.setAttribute("stroke", "black");
-            line.setAttribute("stroke-width", 2);
+            line.setAttribute("stroke", currentLineColor);
+            line.setAttribute("stroke-width", currentLineWidth);
             return line;
         },
         update: (shape, x, y) => {
@@ -64,7 +152,7 @@ const shapeHandlers = {
             ellipse.setAttribute("cy", y);
             ellipse.setAttribute("rx", 0);
             ellipse.setAttribute("ry", 0);
-            ellipse.setAttribute("fill", "green");
+            setTransparentAndStrokeOnCreate(ellipse);
             return ellipse;
         },
         update: (shape, x, y) => {
@@ -76,42 +164,14 @@ const shapeHandlers = {
     },
 };
 
-
-//pe svg canvas:
-svgCanvas.addEventListener("mousedown", onMouseDown);//cand dai click undeva
-svgCanvas.addEventListener("mousemove", onMouseMove);//cand misti mouse-ul
-svgCanvas.addEventListener("mouseup", onMouseUp);//cand ridici click-ul (termini de desenat)
-
-//setare tool activ
-buttons.forEach((button) => {
-    button.addEventListener("click", () => {
-        buttons.forEach((btn) => btn.classList.remove("active"));
-
-        button.classList.add("active");
-
-        activeTool = button.getAttribute("tool");
-        updateCursorStyle();
-    });
-});
-
 //setare cursor la hover pe svg canvas
 function updateCursorStyle() {
     if (activeTool === "selector" || activeTool === null) {
-        svgCanvas.style.cursor = "default"; 
+        svgCanvas.style.cursor = "default";
     } else {
         svgCanvas.style.cursor = "crosshair";
     }
 }
-
-//export SVG
-document.getElementById("download-svg").addEventListener("click", () => {
-    const svgContent = svgCanvas.outerHTML;
-    const blob = new Blob([svgContent], { type: "image/svg+xml" });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = "drawing.svg";
-    link.click();
-});
 
 function onMouseDown(e) {
     if (activeTool && shapeHandlers[activeTool]) {
@@ -120,6 +180,7 @@ function onMouseDown(e) {
 
         currentShape = shapeHandlers[activeTool].create(startX, startY);
         svgCanvas.appendChild(currentShape);
+        stack.push(currentShape);
     }
 }
 
@@ -133,4 +194,6 @@ function onMouseMove(e) {
 
 function onMouseUp() {
     currentShape = null;
+    autoSave();
+    console.log(localStorage.getItem("stack"));
 }
