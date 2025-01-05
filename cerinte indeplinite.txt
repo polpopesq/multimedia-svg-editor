@@ -1,0 +1,6 @@
+1p - suport pentru adăugare elemente geometrice de bază (linie, elipsă, dreptunghi)  
+0.5p - suport pentru selectarea culorii și grosimii liniei pentru adăugare 
+1p - suport pentru anularea ultimelor n operații (undo) 
+1.5p - suport pentru mutare elemente utilizând mouse-ul 
+0.5p - posibilitate salvare desen în format SVG 
+1p - salvarea automată a desenului curent și reîncărcare la pornire cu ajutorul Web Storage API (sau a unui alt API similar) 
