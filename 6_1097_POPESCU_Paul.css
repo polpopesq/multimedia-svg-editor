@@ -41,3 +41,7 @@ svg {
     color: white;
     border-color: #0056b3;
 }
+
+#delete {
+    display: none;
+}
